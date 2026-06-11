@@ -1,0 +1,13 @@
+.vscode/
+.idea/
+.DS_Store
+venv/
+.venv/
+env/
+
+**/__pycache__/
+**/*.pyc
+**/db.sqlite3
+**/local_settings.py
+
+*.log
