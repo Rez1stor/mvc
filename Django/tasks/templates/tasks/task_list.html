@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager - Django</title>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    
+    <h2>Додати нове завдання</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Додати</button>
+    </form>
+
+    <h2>Список завдань</h2>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <strong>{{ task.title }}</strong> - 
+                {% if task.is_completed %}
+                    <span style="color: green;">Виконано</span>
+                {% else %}
+                    <span style="color: red;">Не виконано</span>
+                {% endif %}
+                <p>{{ task.description }}</p>
+            </li>
+        {% empty %}
+            <li>Немає завдань.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
