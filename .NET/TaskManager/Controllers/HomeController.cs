@@ -1,24 +1,36 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using TaskManager.Models;
 
-namespace TaskManager.Controllers;
-
-public class HomeController : Controller
+namespace TaskManager.Controllers
 {
-    public IActionResult Index()
+    public class HomeController : Controller
     {
-        return View();
-    }
+        private static List<TaskItem> _tasks = new List<TaskItem>();
+        private static int _nextId = 1;
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        public IActionResult Index()
+        {
+            return View(_tasks);
+        }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        [HttpPost]
+        public IActionResult Create(TaskItem task)
+        {
+            if (ModelState.IsValid)
+            {
+                task.Id = _nextId++;
+                task.CreatedAt = System.DateTime.Now;
+                _tasks.Add(task);
+                return RedirectToAction(nameof(Index));
+            }
+            return View("Index", _tasks);
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }
