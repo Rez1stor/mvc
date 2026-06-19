@@ -1,54 +1,72 @@
-# Фінальний Проєкт: Каталог Фільмів (Zadanie 12)
+# Projekt Zaliczeniowy MVC
 
-Цей проєкт є фінальним завданням з курсу створення веб-додатків. Він реалізує повноцінний каталог фільмів з використанням патерну MVC (MVT) на базі фреймворку Django.
+## Tytuł i nazwa wybranego projektu
+**Tytuł zadania:** Zadanie 12 – Katalog kolekcji filmów  
+**Nazwa projektu:** Movie Catalog
 
-## Зміст (Spis treści)
-1. [Опис проєкту](#опис-проєкту)
-2. [Список реалізованих функціональностей](#список-реалізованих-функціональностей)
-3. [Реалізовані додаткові вимоги (для оцінки > 3.0)](#реалізовані-додаткові-вимоги)
-4. [Інструкція з налаштування та запуску](#інструкція-з-запуску)
-5. [Приклади даних](#приклади-даних)
+## Spis treści
+1. [Tytuł i nazwa wybranego projektu](#tytuł-i-nazwa-wybranego-projektu)
+2. [Lista i krótki opis zaimplementowanych funkcjonalności](#lista-i-krótki-opis-zaimplementowanych-funkcjonalności)
+3. [Instrukcje obsługi](#instrukcje-obsługi)
+4. [Architektura MVC w projekcie](#architektura-mvc-w-projekcie)
+5. [Realizacja wymagań na wyższą ocenę (powyżej 3.0)](#realizacja-wymagań-na-wyższą-ocenę-powyżej-30)
+6. [Kod źródłowy aplikacji](#kod-źródłowy-aplikacji)
+7. [Plik z przykładowymi danymi wejściowymi](#plik-z-przykładowymi-danymi-wejściowymi)
 
-## Опис проєкту
-Додаток є платформою для кіноманів. Користувачі можуть переглядати загальний каталог фільмів, переглядати детальну інформацію про кожен з них, додавати нові фільми, створювати особистий профіль, додавати фільми до улюблених, ставити оцінки, залишати відгуки та отримувати персоналізовані рекомендації.
+## Lista i krótki opis zaimplementowanych funkcjonalności
+- **Przeglądanie listy filmów:** Wyświetlanie całego katalogu dostępnych w bazie filmów.
+- **Szczegóły filmu:** Wyświetlanie pełnych informacji, w tym plakatu, opisu, reżysera, gatunków oraz dodanych recenzji.
+- **Dodawanie i edycja (Formularze):** Możliwość ręcznego i zautomatyzowanego dodawania nowych filmów oraz edycji ich detali.
+- **Konta użytkowników i system autoryzacji:** Rejestracja, logowanie i zarządzanie profilem (np. zmiana awatara, hasła).
+- **Ocenianie i recenzje:** Użytkownicy mogą pisać recenzje oraz wystawiać oceny w skali 1-10.
+- **Listy użytkownika (Statusy):** Śledzenie statusu oglądania dla każdego filmu (np. "Obejrzane", "Do obejrzenia", "Ulubione").
+- **Wyszukiwanie i filtrowanie:** Błyskawiczne wyszukiwanie filmów po tytule oraz filtrowanie zasobów po powiązanych gatunkach.
+- **Automatyczne pobieranie danych API:** System podpowiedzi tytułów z zewnętrznego OMDb API, który pozwala przy tworzeniu filmu jednym kliknięciem pobrać wszystkie metadane.
 
-## Список реалізованих функціональностей
-- **Перегляд списку фільмів:** Відображення каталогу фільмів з можливістю сортування.
-- **Детальна сторінка фільму:** Перегляд повної інформації, включаючи постер, опис, режисера, жанри та відгуки.
-- **Форми додавання та редагування:** Зручні форми для додавання нових або редагування існуючих фільмів у базі.
-- **Коментарі та відгуки:** Користувачі можуть коментувати фільми.
-- **Управління профілем:** Зміна імені, пошти, пароля, встановлення емодзі в якості аватарки, та видалення акаунту.
-- **Зміна статусу перегляду:** Відстеження статусу фільмів ("Переглянуто", "Хочу подивитись", "Дивлюсь зараз", "Не цікаво").
-- **Система рекомендацій:** Як загальні глобальні тренди, так і персоналізовані пропозиції (Collaborative Filtering).
+## Instrukcje obsługi
+### Jak uruchomić aplikację, jakie paczki należy zainstalować i w jaki sposób
+Aplikacja została napisana w języku Python przy użyciu frameworka Django. 
 
-## Реалізовані додаткові вимоги
-Проєкт перевищує мінімальні вимоги (достатньо 2 пунктів, реалізовано 6):
-1. **Складні моделі (Додаткові моделі та зв'язки):** Окрім базової моделі `Movie`, реалізовано `Director`, `Genre`, `Review`, `Rating`, `Favorite` та `UserMovieStatus` з відповідними One-to-Many та Many-to-Many зв'язками.
-2. **Преміальний дизайн:** Створено дуже сучасний "скляний" дизайн (Glassmorphism) з динамічними анімаціями та власною системою стилів.
-3. **Валідація (Клієнтська та Серверна):** Валідація форм на стороні Django (наприклад, заборона створення дублікатів фільмів за роком та назвою) та на стороні HTML5.
-4. **Інтеграція зовнішнього API:** Підключено **OMDb API**. При створенні фільму працює автозаповнення: достатньо почати вводити назву, API запропонує варіанти та автоматично підтягне постер, жанри, режисера та опис.
-5. **Фільтрація та Пошук:** Реалізовано "живий" пошук та фільтрацію каталогу за жанрами.
-6. **Система логіну та сесій:** Повноцінна система реєстрації, авторизації, та захист маршрутів за допомогою сесій (Cookies/Sessions).
-
-## Інструкція з запуску
-
-1. Відкрийте термінал у папці проєкту (`mvc/Project/MovieCatalog`).
-2. Створіть та активуйте віртуальне середовище:
-   - На Windows: `python -m venv venv` а потім `.\venv\Scripts\activate`
-   - На Mac/Linux: `python3 -m venv venv` а потім `source venv/bin/activate`
-3. Встановіть необхідні залежності:
+1. Przejdź do tego folderu (`Project/MovieCatalog`):
+   ```bash
+   cd Project/MovieCatalog
+   ```
+2. Stwórz i aktywuj środowisko wirtualne:
+   - **Windows:** `python -m venv venv` a następnie `.\venv\Scripts\activate`
+   - **Linux/Mac:** `python3 -m venv venv` a następnie `source venv/bin/activate`
+3. Zainstaluj wymagane paczki za pomocą wbudowanego instalatora `pip`:
    ```bash
    pip install django requests
    ```
-4. Зробіть міграції бази даних:
+   *(Paczka `django` to główny framework MVC, a biblioteka `requests` jest potrzebna do komunikacji HTTP z API OMDb).*
+4. Wykonaj migracje struktury bazy danych:
    ```bash
    python manage.py migrate
    ```
-5. Запустіть локальний сервер:
+5. Uruchom serwer deweloperski:
    ```bash
    python manage.py runserver
    ```
-6. Перейдіть в браузері за адресою [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+6. Gotowa aplikacja będzie w pełni dostępna w przeglądarce pod adresem: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
-## Приклади даних
-База даних `db.sqlite3` вже містить близько 200 топових фільмів з OMDb API. Також у репозиторії наявний файл `seed_200.py`, який може бути використаний для автоматичного наповнення порожньої бази даних.
+## Architektura MVC w projekcie
+Projekt ściśle realizuje założenia wzorca architektonicznego MVC (w Django funkcjonującego pod nazwą MVT - Model-View-Template) ze szczególnym uwzględnieniem wymagań dla *Zadania 12*:
+- **Model:** Reprezentowany m.in. przez główną klasę `Movie` (posiadającą wymagane pola: tytuł, reżyser, ocena) zdefiniowaną w pliku `models.py`.
+- **Kontroler (View w Django):** Odpowiadają za to funkcje i klasy widoków w `views.py`. Obsługują one żądania HTTP, wyciągają i przygotowują dane w Modelach i przekazują gotowy kontekst do szablonów HTML.
+- **Widok (Template w Django):** Szablony znajdujące się w plikach `.html` (np. lista widoków w `index.html` czy formularz dodawania/edycji w `movie_form.html`), które generują estetyczny interfejs dla końcowego użytkownika na bazie przekazanych danych.
+
+## Realizacja wymagań na wyższą ocenę (powyżej 3.0)
+Aby uzyskać ocenę wyższą niż 3.0, zgodnie z instrukcją należało wykonać co najmniej dwie modyfikacje. W niniejszym projekcie zrealizowano ich znacznie więcej:
+1. **Dodanie dwóch dodatkowych modeli oraz relacji pomiędzy nimi:** Zaimplementowano dodatkowe, zaawansowane modele takie jak `Director`, `Genre`, `Review`, `Rating`, `Favorite` oraz `UserMovieStatus` wraz z relacjami kluczy obcych (One-to-Many oraz Many-to-Many) pomiędzy nimi a modelem głównym `Movie`.
+2. **Dodanie ostylowanej tabeli lub widoku pojedynczego obiektu w sposób schludny wizualnie:** Stworzono bardzo nowoczesny interfejs wizualny w stylu "Glassmorphism" używając zaawansowanych arkuszy CSS i mikro-animacji, a także w pełni ostylowany widok szczegółów filmu.
+3. **Zastosowanie zewnętrznego API:** Aplikacja dynamicznie integruje się z **OMDb API**. Przy ręcznym dodawaniu filmu serwer odpytuje zewnętrzne API i potrafi całkowicie automatycznie pobrać plakat, reżysera, rok wydania, gatunki i poprawny opis.
+4. **Dodanie funkcji filtrowania i wyszukiwania:** Katalog filmów udostępnia wyszukiwarkę tytułów oraz elastyczne filtrowanie wyników według wszystkich zdefiniowanych gatunków.
+5. **Zaimplementowanie logiki sesji użytkownika i prostego systemu logowania:** Dodano pełen system zarządzania kontami oparty na bezpiecznych sesjach. Krytyczne funkcje takie jak dodawanie filmów, recenzowanie i modyfikacja własnych list zapisanych filmów są chronione i dostępne wyłącznie po poprawnej autoryzacji.
+6. **Dodanie walidacji po stronie serwera oraz klienta:** Zaimplementowano walidację formularzy poprzez wymagane atrybuty w HTML5 na froncie oraz restrykcyjną weryfikację na backendzie (np. blokowanie duplikatów przy tworzeniu nowych filmów o identycznym tytule i roku).
+
+## Kod źródłowy aplikacji
+Cały kod źródłowy aplikacji znajduje się w tym folderze. Główna aplikacja definiująca zachowanie wzorca MVC spoczywa w podkatalogu `movies/` (pliki `models.py`, `views.py`, folder `templates`).
+
+## Plik z przykładowymi danymi wejściowymi
+Repozytorium w tym katalogu zawiera w sobie wygenerowany już plik bazy danych `db.sqlite3`, który posiada setki prawidłowych rekordów pobranych z API, dzięki czemu można od razu rozpocząć testowanie aplikacji.
+Ponadto znajduje się tu skrypt **`seed_200.py`**, który pełni rolę generatora danych (dane wejściowe) potrafiącego w kilkanaście sekund napełnić zupełnie pustą bazę danych wysokiej jakości próbnymi filmami od zera.
