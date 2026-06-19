@@ -1,0 +1,242 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="mb-4" data-aos="fade-right">
+    <a href="{% url 'movie_list' %}" class="text-decoration-none" style="color: #cbd5e1;" data-i18n="back_to_list">&larr; Back to list</a>
+</div>
+
+<div class="glass-card" data-aos="fade-up">
+    <div class="row">
+        <div class="col-md-4 mb-4 mb-md-0" data-aos="zoom-in" data-aos-delay="200">
+            {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" class="img-fluid rounded" alt="{{ movie.title }}" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            {% else %}
+                <div class="rounded d-flex align-items-center justify-content-center" style="height: 500px; background-color: #222;">
+                    <span class="text-muted" data-i18n="no_poster">No poster available</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-3" data-aos="fade-left" data-aos-delay="100">
+                <h1 class="mb-0">{{ movie.title }}</h1>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Average rating display -->
+                    <div class="badge badge-custom fs-6">★ {{ movie.rating }}</div>
+                    
+                    {% if user.is_authenticated %}
+                        <!-- Favorite button (HTMX) -->
+                        <button hx-post="{% url 'toggle_favorite' movie.id %}" 
+                                hx-swap="innerHTML"
+                                class="btn btn-link p-0 text-decoration-none"
+                                title="Toggle Favorite">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="{% if is_favorite %}#E50914{% else %}none{% endif %}" stroke="{% if is_favorite %}#E50914{% else %}currentColor{% endif %}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="text-muted fs-5 mb-4" data-aos="fade-left" data-aos-delay="150">{{ movie.release_year }}</p>
+            
+            <div class="mb-4" data-aos="fade-left" data-aos-delay="200">
+                {% for genre in movie.genres.all %}
+                    <span class="badge bg-secondary me-1">{{ genre.name }}</span>
+                {% empty %}
+                    <span class="text-muted" data-i18n="genres_not_set">Genres not specified</span>
+                {% endfor %}
+            </div>
+            
+            <div data-aos="fade-up" data-aos-delay="250">
+                <h5 class="mt-4 mb-2" data-i18n="description_label">Description</h5>
+                <p style="line-height: 1.8;">{% if movie.description %}{{ movie.description }}{% else %}<span data-i18n="no_description">No description available.</span>{% endif %}</p>
+            </div>
+            
+            {% if movie.director %}
+            <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid #333;" data-aos="fade-up" data-aos-delay="300">
+                <h5 class="mb-2"><span data-i18n="director_label">Director</span>: {{ movie.director.name }}</h5>
+                {% if movie.director.birth_date %}
+                    <p class="text-muted small mb-2"><span data-i18n="birth_date_label">Date of birth</span>: {{ movie.director.birth_date }}</p>
+                {% endif %}
+                <p class="mb-0 small">{{ movie.director.biography|default:"" }}</p>
+            </div>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+            <!-- User interactions panel -->
+            <div class="mt-4 p-3 rounded d-flex flex-wrap gap-4 align-items-center" style="background: rgba(229, 9, 20, 0.1); border: 1px solid rgba(229, 9, 20, 0.2);" data-aos="fade-up" data-aos-delay="350">
+                <!-- Status dropdown -->
+                <div x-data="{ status: '{{ user_status|default:'' }}' }">
+                    <label class="form-label text-muted small mb-1">My Status</label>
+                    <select class="form-select form-select-sm text-white border-secondary" style="width: auto;"
+                            :class="{
+                                'bg-success bg-opacity-75': status === 'watched',
+                                'bg-primary bg-opacity-75': status === 'want_to_watch',
+                                'bg-warning bg-opacity-75 text-dark': status === 'watching',
+                                'bg-secondary bg-opacity-75': status === 'not_interested',
+                                'bg-dark': !status
+                            }"
+                            x-model="status"
+                            hx-post="{% url 'update_status' movie.id %}"
+                            hx-swap="none"
+                            name="status">
+                        <option value="" class="bg-dark text-white">-- Select Status --</option>
+                        {% for val, text in status_choices %}
+                            <option value="{{ val }}" class="bg-dark text-white" data-i18n="status_{{ val }}">{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Personal rating -->
+                <div x-data="{ ratingVal: {{ user_rating }} }">
+                    <label class="form-label text-muted small mb-1">My Rating</label>
+                    <div class="d-flex align-items-center gap-1">
+                        <template x-for="i in 10" :key="i">
+                            <span class="star fs-5" 
+                                  :class="i <= Math.round(ratingVal) ? 'filled' : ''"
+                                  @click="ratingVal = i; $nextTick(() => htmx.trigger($refs.ratingForm, 'submit'))"
+                                  style="cursor: pointer;"
+                                  x-text="'★'"></span>
+                        </template>
+                    </div>
+                    <!-- Hidden form to submit rating via HTMX -->
+                    <form x-ref="ratingForm" hx-post="{% url 'rate_movie' movie.id %}" hx-swap="none" hx-trigger="submit">
+                        <input type="hidden" name="score" x-model="ratingVal">
+                    </form>
+                </div>
+            </div>
+            
+            {% if user.is_superuser %}
+            <div class="mt-4 d-flex gap-3" data-aos="fade-up" data-aos-delay="400">
+                <a href="{% url 'movie_update' movie.id %}" class="btn-primary-custom" data-i18n="btn_edit">Edit</a>
+                <button class="btn-danger-custom" 
+                        onclick="confirmDelete('{{ movie.title }}', '{% url 'movie_delete' movie.id %}')"
+                        data-i18n="btn_delete">Delete</button>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Similar Movies Section -->
+    {% if similar_movies %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <h3 class="mb-4 text-muted" data-i18n="similar_movies">Similar Movies</h3>
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                {% for similar in similar_movies %}
+                <div class="col">
+                    <div class="glass-card p-0 d-flex flex-column h-100">
+                        {% if similar.poster_url %}
+                            <img src="{{ similar.poster_url }}" class="movie-poster" style="height: auto; aspect-ratio: 2/3;">
+                        {% endif %}
+                        <div class="p-3 mt-auto">
+                            <h6 class="mb-2 text-truncate" title="{{ similar.title }}">{{ similar.title }}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">{{ similar.release_year }}</small>
+                                <span class="badge badge-custom px-2 py-1">★ {{ similar.rating }}</span>
+                            </div>
+                            <a href="{% url 'movie_detail' similar.id %}" class="btn-outline-custom w-100 text-center py-1" style="font-size: 0.8em;">Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Reviews Section -->
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <h3 class="mb-4">Reviews</h3>
+            
+            {% if user.is_authenticated %}
+            <div class="glass-card p-3 mb-4">
+                <form action="{% url 'add_review' movie.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea class="form-control" name="text" rows="3" placeholder="Write your review here..." required>{% if user_review %}{{ user_review.text }}{% endif %}</textarea>
+                    </div>
+                    <button type="submit" class="btn-primary-custom">
+                        {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="alert alert-dark border-secondary">
+                <a href="{% url 'login' %}" class="text-white text-decoration-none fw-bold">Log in</a> to write a review.
+            </div>
+            {% endif %}
+            
+            <div class="reviews-list">
+                {% for review in reviews %}
+                <div class="p-3 mb-3 rounded position-relative" style="background: rgba(255,255,255,0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong style="color: var(--primary-color);">{{ review.user.username }}</strong>
+                            <small class="text-muted ms-2">{{ review.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% if user == review.user or user.is_superuser %}
+                        <form action="{% url 'delete_review' review.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Delete Review">&times;</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p class="mb-0" style="color: #cbd5e1; white-space: pre-wrap;">{{ review.text }}</p>
+                </div>
+                {% empty %}
+                <p class="text-muted">No reviews yet. Be the first to share your thoughts!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(title, deleteUrl) {
+    const lang = localStorage.getItem('metflix_lang') || 'en';
+    const t = {
+        en: { title: 'Delete Movie?', text: 'You are about to delete', confirm: 'Yes, delete', cancel: 'Cancel', deleted: 'Deleted!', deletedText: 'has been removed.' },
+        pl: { title: 'Usunąć film?', text: 'Zamierzasz usunąć', confirm: 'Tak, usuń', cancel: 'Anuluj', deleted: 'Usunięto!', deletedText: 'został usunięty.' }
+    };
+    const tr = t[lang] || t.en;
+    
+    Swal.fire({
+        title: tr.title,
+        html: `${tr.text} <strong>"${title}"</strong>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E50914',
+        cancelButtonColor: '#333',
+        confirmButtonText: tr.confirm,
+        cancelButtonText: tr.cancel,
+        background: '#181818',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create and submit a hidden form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = deleteUrl;
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrf) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrf.value;
+                form.appendChild(csrfInput);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+</script>
+<!-- Hidden CSRF token for SweetAlert delete -->
+{% csrf_token %}
+{% endblock %}

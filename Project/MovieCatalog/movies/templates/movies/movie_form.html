@@ -1,0 +1,291 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="mb-4" data-aos="fade-right">
+            {% if movie %}
+                <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none" style="color: #cbd5e1;" data-i18n="btn_cancel">&larr; Cancel</a>
+            {% else %}
+                <a href="{% url 'movie_list' %}" class="text-decoration-none" style="color: #cbd5e1;" data-i18n="btn_cancel">&larr; Cancel</a>
+            {% endif %}
+        </div>
+        
+        <div class="glass-card" data-aos="fade-up">
+            <h2 class="mb-4" data-i18n="{% if movie %}form_title_edit{% else %}form_title_add{% endif %}">{% if movie %}Edit Movie{% else %}Add Movie{% endif %}</h2>
+            
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row g-3">
+                    <div class="col-md-8 position-relative" style="z-index: 1050;" data-aos="fade-up" data-aos-delay="100" x-data="movieAutocomplete()">
+                        <label class="form-label text-muted" data-i18n="label_title">Title</label>
+                        
+                        <div class="input-group">
+                            <!-- We render the form field but add Alpine bindings to it -->
+                            <input type="text" name="title" id="id_title" 
+                                   class="form-control" 
+                                   x-model="query" 
+                                   @input.debounce.500ms="searchMovies"
+                                   @focus="if(results.length > 0) showDropdown = true"
+                                   @click.outside="showDropdown = false"
+                                   value="{{ form.title.value|default:'' }}"
+                                   autocomplete="off" required>
+                        </div>
+                        
+                        <!-- Autocomplete Dropdown -->
+                        <div class="dropdown-menu w-100 shadow" 
+                             :class="{ 'show': showDropdown }" 
+                             style="position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background-color: var(--card-bg); border: 1px solid #444;">
+                            
+                            <div x-show="loading" class="p-3 text-center text-muted">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Searching...
+                            </div>
+                            
+                            <template x-for="movie in results" :key="movie.imdbID">
+                                <a href="#" class="dropdown-item d-flex align-items-center gap-3 py-2 border-bottom border-secondary text-white hover-bg-dark" 
+                                   @click.prevent="selectMovie(movie.imdbID)"
+                                   style="white-space: normal;">
+                                    <img :src="movie.Poster !== 'N/A' ? movie.Poster : ''" 
+                                         class="rounded bg-secondary" 
+                                         style="width: 40px; height: 60px; object-fit: cover;" 
+                                         alt="Poster">
+                                    <div>
+                                        <div class="fw-bold" x-text="movie.Title"></div>
+                                        <small class="text-muted" x-text="movie.Year"></small>
+                                    </div>
+                                </a>
+                            </template>
+                            
+                            <div x-show="!loading && query.length >= 3 && results.length === 0" class="p-3 text-muted text-center">
+                                No results found.
+                            </div>
+                        </div>
+
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                        <label class="form-label text-muted" data-i18n="label_year">Release Year</label>
+                        {{ form.release_year }}
+                        {% if form.release_year.errors %}
+                            <div class="text-danger small mt-1">{{ form.release_year.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Alpine.js interactive rating slider -->
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200"
+                         x-data="{ ratingVal: {{ form.rating.value|default:'5' }} }">
+                        <label class="form-label text-muted" data-i18n="label_rating">Rating</label>
+                        {{ form.rating }}
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <template x-for="i in 10" :key="i">
+                                <span class="star fs-5" 
+                                      :class="i <= Math.round(ratingVal) ? 'filled' : ''"
+                                      @click="ratingVal = i; $refs.ratingInput ? $refs.ratingInput.value = i : document.getElementById('id_rating').value = i"
+                                      style="cursor: pointer;"
+                                      x-text="'★'"></span>
+                            </template>
+                        </div>
+                        <div class="small text-muted mt-1" data-i18n="rating_hint">From 1 to 10</div>
+                        {% if form.rating.errors %}
+                            <div class="text-danger small mt-1">{{ form.rating.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-8" data-aos="fade-up" data-aos-delay="250">
+                        <label class="form-label text-muted" data-i18n="label_director">Director</label>
+                        {{ form.director }}
+                        {% if form.director.errors %}
+                            <div class="text-danger small mt-1">{{ form.director.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-12" data-aos="fade-up" data-aos-delay="300" x-data="{ selectedGenres: [] }" x-init="
+                        // Sync selected genres on init and change
+                        const select = document.getElementById('id_genres');
+                        if (select) {
+                            const updateSelected = () => {
+                                selectedGenres = Array.from(select.selectedOptions).map(opt => opt.text);
+                            };
+                            updateSelected();
+                            select.addEventListener('change', updateSelected);
+                            // Also listen for our custom event from autocomplete
+                            select.addEventListener('genres-updated', updateSelected);
+                        }
+                    ">
+                        <label class="form-label text-muted" data-i18n="label_genres">Genres</label>
+                        {{ form.genres }}
+                        
+                        <!-- Visual Badges for selected genres -->
+                        <div class="mt-2" x-show="selectedGenres.length > 0">
+                            <template x-for="genre in selectedGenres">
+                                <span class="badge bg-primary me-1" x-text="genre"></span>
+                            </template>
+                        </div>
+                        
+                        <div class="small text-muted mt-1" data-i18n="genres_hint">Hold Ctrl (or Cmd) to select multiple</div>
+                        {% if form.genres.errors %}
+                            <div class="text-danger small mt-1">{{ form.genres.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-12" data-aos="fade-up" data-aos-delay="350">
+                        <label class="form-label text-muted" data-i18n="label_description">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-12" data-aos="fade-up" data-aos-delay="400">
+                        <label class="form-label text-muted" data-i18n="label_poster">Poster URL</label>
+                        {{ form.poster_url }}
+                        {% if form.poster_url.errors %}
+                            <div class="text-danger small mt-1">{{ form.poster_url.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-5 pt-3" style="border-top: 1px solid #333;" data-aos="fade-up" data-aos-delay="450">
+                    <button type="submit" class="btn-primary-custom px-5 py-2" data-i18n="btn_save">Save</button>
+                    <p class="small text-muted mt-3 mb-0" data-i18n="form_api_hint">
+                        * If you leave Description and Poster fields empty, the system will try to fetch them from OMDb API by the movie title.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sync Alpine star clicks with the actual form input
+    document.addEventListener('alpine:init', () => {
+        const ratingInput = document.getElementById('id_rating');
+        if (ratingInput) {
+            ratingInput.addEventListener('input', (e) => {
+                // This syncs manual number input changes to the Alpine stars
+            });
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const titleInput = document.getElementById('id_title');
+        const descInput = document.getElementById('id_description');
+        const posterInput = document.getElementById('id_poster_url');
+        
+        if(titleInput) titleInput.setAttribute('data-i18n-placeholder', 'title_ph');
+        if(descInput) descInput.setAttribute('data-i18n-placeholder', 'desc_ph');
+        if(posterInput) posterInput.setAttribute('data-i18n-placeholder', 'poster_ph');
+    });
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('movieAutocomplete', () => ({
+            query: document.getElementById('id_title') ? document.getElementById('id_title').value : '',
+            results: [],
+            showDropdown: false,
+            loading: false,
+
+            async searchMovies() {
+                if (this.query.length < 3) {
+                    this.results = [];
+                    this.showDropdown = false;
+                    return;
+                }
+                
+                this.loading = true;
+                this.showDropdown = true;
+                
+                try {
+                    const response = await fetch(`/api/search/?q=${encodeURIComponent(this.query)}`);
+                    const data = await response.json();
+                    this.results = data.results || [];
+                } catch (e) {
+                    console.error("Search failed", e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async selectMovie(imdbID) {
+                this.showDropdown = false;
+                
+                // Show global loading indicator if you have one, or just wait
+                try {
+                    const response = await fetch(`/api/details/?id=${imdbID}`);
+                    const details = await response.json();
+                    
+                    if(details.error) return;
+
+                    // Fill fields
+                    this.query = details.title;
+                    const yearInput = document.getElementById('id_release_year');
+                    if(yearInput) yearInput.value = details.release_year;
+                    
+                    const ratingInput = document.getElementById('id_rating');
+                    if(ratingInput) ratingInput.value = details.rating;
+                    // Trigger custom event for alpine rating sync if needed
+                    ratingInput.dispatchEvent(new Event('input'));
+                    
+                    const descInput = document.getElementById('id_description');
+                    if(descInput) descInput.value = details.description;
+                    
+                    const posterInput = document.getElementById('id_poster_url');
+                    if(posterInput) posterInput.value = details.poster_url;
+                    
+                    // Director (Select)
+                    const dirSelect = document.getElementById('id_director');
+                    if(dirSelect && details.director_data) {
+                        // Check if option exists, if not, add it
+                        let opt = Array.from(dirSelect.options).find(o => parseInt(o.value) === parseInt(details.director_data.id));
+                        if(!opt) {
+                            opt = new Option(details.director_data.name, details.director_data.id);
+                            dirSelect.add(opt);
+                        }
+                        dirSelect.value = details.director_data.id;
+                    }
+                    
+                    // Genres (Select Multiple)
+                    const genreSelect = document.getElementById('id_genres');
+                    if(genreSelect && details.genres_data && details.genres_data.length > 0) {
+                        // Clear current selections
+                        Array.from(genreSelect.options).forEach(o => o.selected = false);
+                        
+                        // Select new ones, creating them if necessary
+                        details.genres_data.forEach(gData => {
+                            let opt = Array.from(genreSelect.options).find(o => parseInt(o.value) === parseInt(gData.id));
+                            if(!opt) {
+                                opt = new Option(gData.name, gData.id);
+                                genreSelect.add(opt);
+                            }
+                            opt.selected = true;
+                        });
+                        
+                        // Dispatch event to update the Alpine badges
+                        genreSelect.dispatchEvent(new Event('genres-updated'));
+                    }
+                    
+                } catch (e) {
+                    console.error("Details fetch failed", e);
+                }
+            }
+        }));
+    });
+</script>
+<style>
+    .hover-bg-dark:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+</style>
+{% endblock %}

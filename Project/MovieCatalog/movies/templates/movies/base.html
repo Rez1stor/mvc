@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Metflix - Movie Catalog{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- AOS (Animate On Scroll) CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.dark.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --bg-color: #141414;
+            --text-color: #ffffff;
+            --primary-color: #E50914;
+            --card-bg: #181818;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: transparent;
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+            transition: background-color 0.4s;
+        }
+
+        .navbar.scrolled {
+            background-color: var(--bg-color);
+        }
+
+        .navbar-brand {
+            color: var(--primary-color) !important;
+            font-family: 'Arial Black', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-link {
+            color: #e5e5e5 !important;
+            font-size: 14px;
+            transition: color 0.4s;
+        }
+
+        .nav-link:hover {
+            color: #b3b3b3 !important;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border-radius: 4px;
+            padding: 2rem;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .movie-card {
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-bottom: none;
+            background-color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            padding: 0.5rem 1.5rem;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #f40612;
+            color: white;
+        }
+
+        .btn-outline-custom {
+            background-color: transparent;
+            border: 1px solid #e5e5e5;
+            color: #e5e5e5;
+            border-radius: 4px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline-custom:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .btn-danger-custom {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger-custom:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Form elements styling */
+        .form-control, .form-select {
+            background: #333333;
+            border: none;
+            color: white;
+            border-radius: 4px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: #454545;
+            color: white;
+            box-shadow: none;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .form-control::placeholder {
+            color: #aaaaaa;
+        }
+        
+        .text-muted {
+            color: #9ca3af !important;
+        }
+        
+        option {
+            background-color: #333;
+            color: white;
+        }
+
+        /* Badge styling */
+        .badge-custom {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 700;
+            border-radius: 2px;
+            font-size: 0.8rem;
+        }
+
+        /* Language switcher */
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 1rem;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid #555;
+            color: #999;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            color: white;
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+        }
+
+        .lang-btn:hover {
+            color: white;
+            border-color: #e5e5e5;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        /* HTMX loading indicator */
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline-block;
+        }
+        .htmx-request.htmx-indicator {
+            display: inline-block;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Rating stars */
+        .star { color: #555; transition: color 0.2s; cursor: default; }
+        .star.filled { color: #ffd700; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body x-data="{ mobileMenu: false }">
+    <nav class="navbar navbar-expand-lg sticky-top mb-5">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'movie_list' %}">METFLIX</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'movie_list' %}" data-i18n="nav_catalog">Catalog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'recommendations' %}" data-i18n="nav_recommendations">Recommendations</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'movie_create' %}" data-i18n="nav_add">Add Movie</a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <span class="fs-5">{{ user.profile.avatar_emoji|default:'👤' }}</span>
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}" data-i18n="nav_profile">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'settings' %}" data-i18n="nav_settings">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item" data-i18n="nav_logout">Log Out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <div class="lang-switcher">
+                    <button class="lang-btn" onclick="setLang('en')" id="lang-en">EN</button>
+                    <button class="lang-btn" onclick="setLang('pl')" id="lang-pl">PL</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mb-5 flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto py-4 text-center">
+        <div class="container text-muted" style="color: #757575 !important;">
+            <small>&copy; 2026 Metflix. <span data-i18n="footer">All rights reserved.</span></small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- HTMX -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- AOS (Animate On Scroll) -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        // ===== i18n Translation System =====
+        const translations = {
+            en: {
+                // Navbar
+                nav_logout: "Log Out",
+                nav_login: "Log In",
+                nav_register: "Register",
+                nav_settings: "Settings",
+                nav_profile: "Profile",
+                nav_movies: "All Movies",
+                nav_add: "Add Movie",
+                footer: "All rights reserved.",
+                // Movie list
+                page_title: "Movie Collection",
+                btn_add_movie: "+ Add Movie",
+                search_placeholder: "Search by title or description...",
+                all_genres: "All genres",
+                btn_search: "Search",
+                no_movies: "No movies found",
+                no_movies_hint: "Try changing search criteria or add a new movie.",
+                btn_details: "Details",
+                no_poster: "No poster available",
+                // Movie detail
+                back_to_list: "&larr; Back to list",
+                description_label: "Description",
+                no_description: "No description available.",
+                director_label: "Director",
+                birth_date_label: "Date of birth",
+                genres_not_set: "Genres not specified",
+                btn_edit: "Edit",
+                btn_delete: "Delete",
+                // Movie form
+                btn_cancel: "&larr; Cancel",
+                label_title: "Title",
+                label_year: "Release Year",
+                label_rating: "Rating",
+                rating_hint: "From 1 to 10",
+                label_director: "Director",
+                label_genres: "Genres",
+                genres_hint: "Hold Ctrl (or Cmd) to select multiple",
+                label_description: "Description",
+                label_poster: "Poster URL",
+                btn_save: "Save",
+                form_api_hint: "* If you leave Description and Poster fields empty, the system will try to fetch them from OMDb API by the movie title.",
+                form_title_add: "Add Movie",
+                form_title_edit: "Edit Movie",
+                title_ph: "Movie title",
+                desc_ph: "Description (can be autofilled)",
+                poster_ph: "Poster URL (can be autofilled)",
+                // Recommendations
+                nav_recommendations: "Recommendations",
+                discover_title: "Discover Movies",
+                discover_desc: "Find your next favorite film.",
+                personalized: "Personalized for You",
+                trending: "Trending Globally",
+                need_tastes: "We need to learn your tastes!",
+                not_enough_data: "We don't have enough data from other users with similar tastes yet. Check back later!",
+                rate_movies: "Rate movies you've watched (7+) or add them to your favorites to get personalized recommendations based on what similar users liked.",
+                explore_movies: "Explore Movies",
+                want_recs: "Want personalized recommendations?",
+                log_in_rate: "Log in and rate movies to get suggestions tailored specifically to your taste.",
+                similar_movies: "Similar Movies",
+                // Delete
+                delete_title: "Delete Movie",
+                delete_confirm: "Are you sure you want to delete",
+                btn_cancel_delete: "Cancel",
+                btn_confirm_delete: "Yes, delete",
+                // Status
+                status_watched: "Watched",
+                status_want_to_watch: "Want to watch",
+                status_watching: "Watching",
+                status_not_interested: "Not interested",
+                // Sorting
+                sort_newest: "Newest first",
+                sort_oldest: "Oldest first",
+                sort_rating_desc: "Highest rated",
+                sort_rating_asc: "Lowest rated",
+                sort_title_asc: "Title A-Z",
+                sort_title_desc: "Title Z-A",
+            },
+            pl: {
+                // Navbar
+                nav_logout: "Wyloguj",
+                nav_login: "Zaloguj",
+                nav_register: "Zarejestruj",
+                nav_settings: "Ustawienia",
+                nav_profile: "Profil",
+                nav_movies: "Wszystkie filmy",
+                nav_add: "Dodaj film",
+                footer: "Wszelkie prawa zastrzeżone.",
+                // Movie list
+                page_title: "Kolekcja filmów",
+                btn_add_movie: "+ Dodaj film",
+                search_placeholder: "Szukaj po tytule lub opisie...",
+                all_genres: "Wszystkie gatunki",
+                btn_search: "Szukaj",
+                no_movies: "Nie znaleziono filmów",
+                no_movies_hint: "Spróbuj zmienić kryteria wyszukiwania lub dodaj nowy film.",
+                btn_details: "Szczegóły",
+                no_poster: "Brak plakatu",
+                // Movie detail
+                back_to_list: "&larr; Powrót do listy",
+                description_label: "Opis",
+                no_description: "Brak opisu.",
+                director_label: "Reżyser",
+                birth_date_label: "Data urodzenia",
+                genres_not_set: "Gatunki nie określone",
+                btn_edit: "Edytuj",
+                btn_delete: "Usuń",
+                // Movie form
+                btn_cancel: "&larr; Anuluj",
+                label_title: "Tytuł",
+                label_year: "Rok wydania",
+                label_rating: "Ocena",
+                rating_hint: "Od 1 do 10",
+                label_director: "Reżyser",
+                label_genres: "Gatunki",
+                genres_hint: "Przytrzymaj Ctrl (lub Cmd), aby wybrać kilka",
+                label_description: "Opis",
+                label_poster: "URL plakatu",
+                btn_save: "Zapisz",
+                form_api_hint: "* Jeśli zostawisz pola Opis i Plakat puste, system spróbuje pobrać je z OMDb API na podstawie tytułu filmu.",
+                form_title_add: "Dodaj film",
+                form_title_edit: "Edytuj film",
+                title_ph: "Tytuł filmu",
+                desc_ph: "Opis (może być wypełniony automatycznie)",
+                poster_ph: "URL plakatu (może być wypełniony automatycznie)",
+                // Recommendations
+                nav_recommendations: "Polecane",
+                discover_title: "Odkrywaj filmy",
+                discover_desc: "Znajdź swój następny ulubiony film.",
+                personalized: "Dopasowane do Ciebie",
+                trending: "Popularne na świecie",
+                need_tastes: "Musimy poznać Twój gust!",
+                not_enough_data: "Nie mamy jeszcze wystarczających danych od użytkowników o podobnym guście. Wróć później!",
+                rate_movies: "Oceń obejrzane filmy (7+) lub dodaj je do ulubionych, aby otrzymać spersonalizowane rekomendacje.",
+                explore_movies: "Przeglądaj filmy",
+                want_recs: "Chcesz spersonalizowanych rekomendacji?",
+                log_in_rate: "Zaloguj się i oceniaj filmy, aby otrzymać sugestie dopasowane do Twojego gustu.",
+                similar_movies: "Podobne filmy",
+                // Delete
+                delete_title: "Usuń film",
+                delete_confirm: "Czy na pewno chcesz usunąć film",
+                btn_cancel_delete: "Anuluj",
+                btn_confirm_delete: "Tak, usuń",
+                // Status
+                status_watched: "Obejrzane",
+                status_want_to_watch: "Chcę obejrzeć",
+                status_watching: "Oglądam",
+                status_not_interested: "Nie interesuje mnie",
+                // Sorting
+                sort_newest: "Najnowsze",
+                sort_oldest: "Najstarsze",
+                sort_rating_desc: "Najwyżej oceniane",
+                sort_rating_asc: "Najniżej oceniane",
+                sort_title_asc: "Tytuł A-Z",
+                sort_title_desc: "Tytuł Z-A",
+            }
+        };
+
+        function detectLang() {
+            const saved = localStorage.getItem('metflix_lang');
+            if (saved) return saved;
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang && browserLang.startsWith('pl')) return 'pl';
+            return 'en';
+        }
+
+        function setLang(lang) {
+            localStorage.setItem('metflix_lang', lang);
+            applyTranslations(lang);
+        }
+
+        function applyTranslations(lang) {
+            const t = translations[lang] || translations['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key] !== undefined) {
+                    el.innerHTML = t[key];
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key] !== undefined) {
+                    el.placeholder = t[key];
+                }
+            });
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('lang-' + lang);
+            if (activeBtn) activeBtn.classList.add('active');
+            document.documentElement.lang = lang;
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                document.querySelector('.navbar').classList.add('scrolled');
+            } else {
+                document.querySelector('.navbar').classList.remove('scrolled');
+            }
+        });
+
+        // Initialize AOS
+        AOS.init({
+            duration: 600,
+            easing: 'ease-out',
+            once: true,
+            offset: 50
+        });
+
+        // Apply language on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            applyTranslations(detectLang());
+        });
+
+        // HTMX: re-apply translations after content swap
+        document.body.addEventListener('htmx:afterSwap', function() {
+            applyTranslations(detectLang());
+            AOS.refresh();
+        });
+
+        // HTMX: Add CSRF token to all requests
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

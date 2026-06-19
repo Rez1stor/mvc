@@ -1,0 +1,56 @@
+<!-- Partial template for movie cards (used by HTMX) -->
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for movie in movies %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:0 }}0">
+        <div class="glass-card movie-card p-0"
+             x-data="{ hover: false }"
+             @mouseenter="hover = true"
+             @mouseleave="hover = false">
+            
+            <!-- Poster -->
+            {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" class="movie-poster" alt="{{ movie.title }}" loading="lazy">
+            {% else %}
+                <div class="movie-poster">
+                    <span data-i18n="no_poster">No poster available</span>
+                </div>
+            {% endif %}
+            
+            <div class="p-3 d-flex flex-column flex-grow-1">
+                <!-- Title & Rating -->
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="mb-0 text-truncate" title="{{ movie.title }}">{{ movie.title }}</h5>
+                    <span class="badge badge-custom ms-2">★ {{ movie.rating }}</span>
+                </div>
+                
+                <!-- Year & Director -->
+                <p class="text-muted small mb-3">{{ movie.release_year }} 
+                    {% if movie.director %}
+                    &bull; {{ movie.director.name }}
+                    {% endif %}
+                </p>
+                
+                <!-- Genres -->
+                <div class="mb-3">
+                    {% for genre in movie.genres.all %}
+                        <span class="badge bg-secondary mb-1" style="font-size: 0.7em;">{{ genre.name }}</span>
+                    {% endfor %}
+                </div>
+                
+                <!-- Details button -->
+                <div class="mt-auto">
+                    <a href="{% url 'movie_detail' movie.id %}" 
+                       class="btn-outline-custom w-100 text-center py-2" 
+                       style="font-size: 0.9em;" 
+                       data-i18n="btn_details">Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <h3 class="text-muted" data-i18n="no_movies">No movies found</h3>
+        <p data-i18n="no_movies_hint">Try changing search criteria or add a new movie.</p>
+    </div>
+    {% endfor %}
+</div>

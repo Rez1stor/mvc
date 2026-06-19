@@ -1,0 +1,36 @@
+{% extends 'movies/base.html' %}
+
+{% block title %}Log In - Metflix{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center" data-aos="fade-up">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-5 mt-5">
+            <h2 class="mb-4 text-center">Log In</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% if form.errors %}
+                <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;">
+                    Incorrect username or password.
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Username</label>
+                    <input type="text" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-muted">Password</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-primary-custom w-100 py-2">Log In</button>
+                <input type="hidden" name="next" value="{{ next|default:'' }}">
+            </form>
+            <div class="text-center mt-4">
+                <span class="text-muted">New to Metflix?</span>
+                <a href="{% url 'register' %}" class="text-decoration-none" style="color: white; font-weight: bold;">Sign up now</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

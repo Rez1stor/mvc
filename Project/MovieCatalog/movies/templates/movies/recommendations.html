@@ -1,0 +1,64 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12" data-aos="fade-down">
+        <h1 class="display-5 fw-bold mb-3" style="background: linear-gradient(90deg, #E50914, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" data-i18n="discover_title">Discover Movies</h1>
+        <p class="lead text-muted" data-i18n="discover_desc">Find your next favorite film.</p>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-right">
+            <h2 class="border-bottom border-secondary pb-2 mb-4">
+                <span class="me-2">🎯</span> <span data-i18n="personalized">Personalized for You</span>
+            </h2>
+        </div>
+    </div>
+    
+    {% if personalized_movies %}
+        {% include 'movies/partials/movie_cards.html' with movies=personalized_movies %}
+    {% else %}
+        <div class="glass-card p-5 text-center mb-5" data-aos="fade-up">
+            <h3 class="mb-3 text-muted" data-i18n="need_tastes">We need to learn your tastes!</h3>
+            {% if has_enough_data %}
+                <p class="mb-0" data-i18n="not_enough_data">We don't have enough data from other users with similar tastes yet. Check back later!</p>
+            {% else %}
+                <p class="mb-4" data-i18n="rate_movies">Rate movies you've watched (7+) or add them to your favorites to get personalized recommendations based on what similar users liked.</p>
+                <a href="{% url 'movie_list' %}" class="btn-primary-custom px-4 py-2" data-i18n="explore_movies">Explore Movies</a>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="row mt-5 mb-4">
+        <div class="col-12" data-aos="fade-right">
+            <h2 class="border-bottom border-secondary pb-2 mb-4">
+                <span class="me-2">🔥</span> <span data-i18n="trending">Trending Globally</span>
+            </h2>
+        </div>
+    </div>
+{% else %}
+    <div class="glass-card p-4 mb-5 d-flex justify-content-between align-items-center flex-wrap gap-3" data-aos="fade-up">
+        <div>
+            <h4 class="mb-1" data-i18n="want_recs">Want personalized recommendations?</h4>
+            <p class="text-muted mb-0" data-i18n="log_in_rate">Log in and rate movies to get suggestions tailored specifically to your taste.</p>
+        </div>
+        <div>
+            <a href="{% url 'login' %}" class="btn-primary-custom px-4" data-i18n="nav_login">Log in</a>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-right">
+            <h2 class="border-bottom border-secondary pb-2 mb-4">
+                <span class="me-2">🔥</span> <span data-i18n="trending">Trending Globally</span>
+            </h2>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Trending Movies Section -->
+{% include 'movies/partials/movie_cards.html' with movies=trending_movies %}
+
+{% endblock %}

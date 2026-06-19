@@ -1,0 +1,20 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="glass-card text-center">
+            <h2 class="mb-4" style="color: var(--primary-color);" data-i18n="delete_title">Delete Movie</h2>
+            <p class="fs-5 mb-4"><span data-i18n="delete_confirm">Are you sure you want to delete the movie</span> <strong>"{{ movie.title }}"</strong>?</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="{% url 'movie_detail' movie.id %}" class="btn-outline-custom" data-i18n="btn_cancel_delete">Cancel</a>
+                    <button type="submit" class="btn-primary-custom" data-i18n="btn_confirm_delete">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center" data-aos="fade-up">
+    <div class="col-md-8">
+        <h2 class="mb-4 text-white" data-i18n="nav_settings">Settings</h2>
+        
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} bg-opacity-75 text-white border-0" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Tab Nav -->
+        <ul class="nav nav-tabs mb-4" id="settingsTab" role="tablist" style="border-bottom: 1px solid var(--secondary-color);">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active bg-transparent text-white" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" style="border: none; border-bottom: 2px solid var(--primary-color);">Profile</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link bg-transparent text-muted" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab" style="border: none;">Password</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link bg-transparent text-muted" id="danger-tab" data-bs-toggle="tab" data-bs-target="#danger" type="button" role="tab" style="border: none;">Danger Zone</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="settingsTabContent">
+            
+            <!-- Profile Tab -->
+            <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                <div class="glass-card p-4">
+                    <form method="POST" action="{% url 'settings' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4" x-data="{ selectedEmoji: '{{ request.user.profile.avatar_emoji }}' }">
+                            <label class="form-label text-white">Choose Avatar</label>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                {% for emoji in emojis %}
+                                <button type="button" 
+                                        class="btn btn-outline-secondary fs-3 p-2" 
+                                        :class="selectedEmoji === '{{ emoji }}' ? 'border-primary bg-primary bg-opacity-25' : 'border-0'"
+                                        @click="selectedEmoji = '{{ emoji }}'">
+                                    {{ emoji }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="avatar_emoji" x-model="selectedEmoji">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">Username</label>
+                            {{ user_form.username }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-white">Email</label>
+                            {{ user_form.email }}
+                        </div>
+                        
+                        <button type="submit" class="btn-primary-custom w-100">Save Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Password Tab -->
+            <div class="tab-pane fade" id="password" role="tabpanel">
+                <div class="glass-card p-4">
+                    <form method="POST" action="{% url 'change_password' %}">
+                        {% csrf_token %}
+                        {% for field in password_form %}
+                            <div class="mb-3 text-white">
+                                {{ field.label_tag }}
+                                <input type="password" name="{{ field.name }}" class="form-control bg-dark text-white border-secondary" required>
+                                {% if field.help_text %}
+                                <small class="text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                <p class="text-danger small mt-1">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn-primary-custom w-100 mt-3">Update Password</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danger Zone Tab -->
+            <div class="tab-pane fade" id="danger" role="tabpanel">
+                <div class="glass-card p-4" style="border: 1px solid rgba(229, 9, 20, 0.3);">
+                    <h4 class="text-white mb-3">Delete Account</h4>
+                    <p class="text-muted">Once you delete your account, there is no going back. Please be certain.</p>
+                    <form method="POST" action="{% url 'delete_account' %}" onsubmit="return confirm('Are you sure you want to permanently delete your account? This action cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">Delete My Account</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple script to handle tab switching styling
+    document.querySelectorAll('.nav-tabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(t => {
+                t.classList.remove('active', 'text-white');
+                t.classList.add('text-muted');
+                t.style.borderBottom = 'none';
+            });
+            this.classList.remove('text-muted');
+            this.classList.add('active', 'text-white');
+            this.style.borderBottom = '2px solid var(--primary-color)';
+        });
+    });
+</script>
+{% endblock %}

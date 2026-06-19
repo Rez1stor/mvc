@@ -1,0 +1,50 @@
+{% extends 'movies/base.html' %}
+
+{% block title %}Sign Up - Metflix{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center" data-aos="fade-up">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-5 mt-5">
+            <h2 class="mb-4 text-center">Sign Up</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% if form.errors %}
+                <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;">
+                    Please correct the errors below.
+                </div>
+                {% endif %}
+                
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label text-muted">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text text-muted small mt-1">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn-primary-custom w-100 py-2 mt-3">Sign Up</button>
+            </form>
+            <div class="text-center mt-4">
+                <span class="text-muted">Already have an account?</span>
+                <a href="{% url 'login' %}" class="text-decoration-none" style="color: white; font-weight: bold;">Log in</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input').forEach(el => {
+            if(!el.classList.contains('form-control')){
+                el.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

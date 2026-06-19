@@ -1,0 +1,61 @@
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+    <h1 class="mb-0" data-i18n="page_title">Movie Collection</h1>
+    {% if user.is_superuser %}
+        <a href="{% url 'movie_create' %}" class="btn-primary-custom" data-i18n="btn_add_movie">+ Add Movie</a>
+    {% endif %}
+</div>
+
+<!-- Filter panel with HTMX live search -->
+<div class="glass-card mb-5 p-4" data-aos="fade-up" data-aos-delay="100">
+    <div class="row g-3">
+        <div class="col-md-5">
+            <input type="text" 
+                   name="q" 
+                   class="form-control" 
+                   placeholder="Search movies..."
+                   data-i18n-placeholder="search_placeholder"
+                   value="{{ query }}"
+                   hx-get="{% url 'movie_search' %}"
+                   hx-trigger="keyup changed delay:500ms, search"
+                   hx-target="#movie-grid"
+                   hx-include="[name='genre'], [name='sort']">
+        </div>
+        <div class="col-md-4">
+            <select name="genre" 
+                    class="form-select"
+                    hx-get="{% url 'movie_search' %}"
+                    hx-trigger="change"
+                    hx-target="#movie-grid"
+                    hx-include="[name='q'], [name='sort']">
+                <option value="" data-i18n="all_genres">All Genres</option>
+                {% for genre in genres %}
+                    <option value="{{ genre.id }}" {% if genre.id == selected_genre %}selected{% endif %}>{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="sort" 
+                    class="form-select"
+                    hx-get="{% url 'movie_search' %}"
+                    hx-trigger="change"
+                    hx-target="#movie-grid"
+                    hx-include="[name='q'], [name='genre']">
+                <option value="-release_year" {% if current_sort == '-release_year' %}selected{% endif %} data-i18n="sort_newest">Newest first</option>
+                <option value="release_year" {% if current_sort == 'release_year' %}selected{% endif %} data-i18n="sort_oldest">Oldest first</option>
+                <option value="-rating" {% if current_sort == '-rating' %}selected{% endif %} data-i18n="sort_rating_desc">Highest rated</option>
+                <option value="rating" {% if current_sort == 'rating' %}selected{% endif %} data-i18n="sort_rating_asc">Lowest rated</option>
+                <option value="title" {% if current_sort == 'title' %}selected{% endif %} data-i18n="sort_title_asc">Title A-Z</option>
+                <option value="-title" {% if current_sort == '-title' %}selected{% endif %} data-i18n="sort_title_desc">Title Z-A</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Movie grid -->
+<div id="movie-grid">
+    {% include 'movies/partials/movie_cards.html' %}
+</div>
+{% endblock %}
