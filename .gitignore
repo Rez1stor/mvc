@@ -11,3 +11,14 @@ env/
 **/local_settings.py
 
 *.log
+
+# .NET / C#
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+appsettings.Development.json

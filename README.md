@@ -1,9 +1,15 @@
 # Wzorzec MVC w tworzeniu aplikacji internetowych
 
-**Imię i nazwisko:** [Twoje Imię i Nazwisko]  
-**Numer indeksu:** [Twój Numer Indeksu]  
+**Imię i nazwisko:** Matvii Ravlyk  
+**Numer indeksu:** 64151 
 
 To repozytorium zawiera realizację zadań laboratoryjnych (1-5) oraz projekt zaliczeniowy z przedmiotu.
+
+## Spis treści
+1. [Projekt Zaliczeniowy: Movie Catalog (Zadanie 12)](#projekt-zaliczeniowy-movie-catalog-zadanie-12)
+2. [Laboratoria (Tutoriale)](#laboratoria-tutoriale)
+    - [Tutorial Django (Lab 2 i 3)](#tutorial-django-lab-2-i-3)
+    - [Tutorial .NET Core MVC (Lab 4 i 5)](#tutorial-net-core-mvc-lab-4-i-5)
 
 ---
 
